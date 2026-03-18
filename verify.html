@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Certificate - BlockCerts</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🔗</span>
+                <span class="logo-text">BlockCerts</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="issuer.html">Issue Certificate</a></li>
+                <li><a href="verify.html" class="active">Verify</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <span id="userEmail" class="user-email"></span>
+                <button id="logoutBtn" class="btn btn-outline">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1 class="page-title">Verify Certificate</h1>
+        
+        <div class="verify-container">
+            <div class="verify-card">
+                <h2>Enter Certificate Hash</h2>
+                
+                <form id="verifyForm">
+                    <div class="form-group">
+                        <label for="certificateHash">Certificate Hash (64 characters)</label>
+                        <input type="text" id="certificateHash" placeholder="0x..." required>
+                        <small>Paste the certificate hash you received</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full">Verify Certificate</button>
+                </form>
+
+                <div class="or-divider">OR</div>
+
+                <div class="upload-section">
+                    <h3>Upload Certificate PDF</h3>
+                    <input type="file" id="certificateFile" accept=".pdf">
+                    <button id="extractHashBtn" class="btn btn-outline">Extract & Verify</button>
+                </div>
+            </div>
+
+            <div id="verificationResult" class="verification-result" style="display: none;">
+                <div class="result-header">
+                    <span class="result-icon" id="resultIcon">❓</span>
+                    <h3 id="resultTitle">Verification Result</h3>
+                </div>
+                <div id="resultDetails" class="result-details"></div>
+            </div>
+        </div>
+
+        <div class="recent-verifications">
+            <h2>Recent Verifications</h2>
+            <div id="recentVerificationsList" class="verification-list">
+                <p class="loading">Loading recent verifications...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 BlockChain Certificate Verification System</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

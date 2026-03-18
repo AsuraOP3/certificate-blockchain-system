@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue Certificate - BlockCerts</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🔗</span>
+                <span class="logo-text">BlockCerts</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="issuer.html" class="active">Issue Certificate</a></li>
+                <li><a href="verify.html">Verify</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <span id="userEmail" class="user-email"></span>
+                <button id="logoutBtn" class="btn btn-outline">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1 class="page-title">Issue New Certificate</h1>
+        
+        <div class="issuer-container">
+            <div class="issuer-form-card">
+                <h2>Certificate Details</h2>
+                
+                <div class="wallet-info" id="walletInfo">
+                    <p><strong>Connected Wallet:</strong> <span id="walletAddress">Not connected</span></p>
+                    <p><strong>Network:</strong> <span id="network">Ethereum Sepolia</span></p>
+                </div>
+
+                <form id="issueCertificateForm">
+                    <div class="form-group">
+                        <label for="studentName">Student Full Name *</label>
+                        <input type="text" id="studentName" placeholder="John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="studentEmail">Student Email *</label>
+                        <input type="email" id="studentEmail" placeholder="student@example.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="courseName">Course/Program Name *</label>
+                        <input type="text" id="courseName" placeholder="Bachelor of Computer Science" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="grade">Grade/GPA</label>
+                        <input type="text" id="grade" placeholder="A / 3.8 GPA">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="issueDate">Issue Date *</label>
+                        <input type="date" id="issueDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="certificateDocument">Certificate Document (PDF) *</label>
+                        <input type="file" id="certificateDocument" accept=".pdf" required>
+                        <small>Upload the certificate PDF (will be used to generate hash)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Certificate Hash (Generated)</label>
+                        <div class="hash-display" id="certificateHash">-</div>
+                        <small>This hash will be stored on blockchain</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="issueBtn">
+                        Issue Certificate on Blockchain
+                    </button>
+                </form>
+            </div>
+
+            <div class="recent-certificates">
+                <h2>Recently Issued</h2>
+                <div id="recentList" class="certificate-list">
+                    <p class="loading">Loading recent certificates...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>✅ Certificate Issued Successfully!</h2>
+            <div id="successDetails"></div>
+            <button class="btn btn-primary" onclick="closeSuccessModal()">Done</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 BlockChain Certificate Verification System</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
