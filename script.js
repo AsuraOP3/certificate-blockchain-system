@@ -6,9 +6,9 @@ let currentUser = null;
 let token = localStorage.getItem('token');
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('Page loaded');
-    
+
     // Check if user is logged in
     if (token) {
         const userData = localStorage.getItem('user');
@@ -17,10 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
             updateUIForLoggedInUser();
         }
     }
-    
+
     // Setup event listeners
     setupEventListeners();
-    
+
     // Load page specific content
     loadPageSpecificContent();
 });
@@ -32,26 +32,26 @@ function setupEventListeners() {
     if (loginBtn) {
         loginBtn.addEventListener('click', () => openModal('loginModal'));
     }
-    
+
     // Register button
     const registerBtn = document.getElementById('registerBtn');
     if (registerBtn) {
         registerBtn.addEventListener('click', () => openModal('registerModal'));
     }
-    
+
     // Logout button
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', logout);
     }
-    
+
     // Modal close buttons
     document.querySelectorAll('.close').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             this.closest('.modal').classList.remove('show');
         });
     });
-    
+
     // Show register from login
     const showRegister = document.getElementById('showRegister');
     if (showRegister) {
@@ -61,7 +61,7 @@ function setupEventListeners() {
             openModal('registerModal');
         });
     }
-    
+
     // Show login from register
     const showLogin = document.getElementById('showLogin');
     if (showLogin) {
@@ -71,48 +71,69 @@ function setupEventListeners() {
             openModal('loginModal');
         });
     }
-    
+
     // Login form
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
-    
+
     // Register form
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
         registerForm.addEventListener('submit', handleRegister);
     }
-    
+
     // Issue certificate form
     const issueForm = document.getElementById('issueCertificateForm');
     if (issueForm) {
         issueForm.addEventListener('submit', handleIssueCertificate);
     }
-    
+
     // Verify form
     const verifyForm = document.getElementById('verifyForm');
     if (verifyForm) {
         verifyForm.addEventListener('submit', handleVerify);
     }
-    
+
     // File upload for certificate
     const certFile = document.getElementById('certificateDocument');
     if (certFile) {
         certFile.addEventListener('change', generateCertificateHash);
     }
-    
+
     // Extract hash from file
     const extractBtn = document.getElementById('extractHashBtn');
     if (extractBtn) {
         extractBtn.addEventListener('click', extractHashFromFile);
     }
 }
+// Add this function to your script.js
+function toggleWalletField() {
+    const role = document.getElementById('regRole').value;
+    const walletInput = document.getElementById('regWallet');
+    const walletRequired = document.getElementById('walletRequired');
+    const walletHelpText = document.getElementById('walletHelpText');
+
+    if (role === 'issuer') {
+        // Issuer NEEDS wallet
+        walletInput.required = true;
+        walletRequired.style.display = 'inline';
+        walletHelpText.textContent = 'Required: Issuers need a wallet to sign blockchain transactions';
+        walletHelpText.style.color = '#e74c3c';
+    } else {
+        // Students and verifiers don't need wallet
+        walletInput.required = false;
+        walletRequired.style.display = 'none';
+        walletHelpText.textContent = 'Optional: You can add this later from your profile';
+        walletHelpText.style.color = '#7f8c8d';
+    }
+}
 
 // Load page specific content
 function loadPageSpecificContent() {
     const path = window.location.pathname;
-    
+
     if (path.includes('index.html') || path === '/') {
         loadDashboardStats();
     } else if (path.includes('issuer.html')) {
@@ -124,11 +145,16 @@ function loadPageSpecificContent() {
 
 // ==================== AUTHENTICATION ====================
 
+// COMPLETELY REPLACE your handleLogin function with this
 async function handleLogin(e) {
     e.preventDefault();
     
+    console.log('🔐 Login function started');
+    
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
+    
+    console.log('Login attempt for:', email);
     
     try {
         const response = await fetch(`${API_URL}/login`, {
@@ -139,35 +165,62 @@ async function handleLogin(e) {
             body: JSON.stringify({ email, password })
         });
         
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
         
         if (response.ok) {
-            // Save token and user data
+            // Save to localStorage
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
+            
+            console.log('✅ Saved to localStorage:');
+            console.log('Token:', data.token.substring(0, 20) + '...');
+            console.log('User:', data.user);
+            
+            // Update current user
             currentUser = data.user;
             token = data.token;
             
-            // Close modal and update UI
+            // Close modal
             closeModal('loginModal');
+            
+            // Update UI
             updateUIForLoggedInUser();
             
             // Clear form
             document.getElementById('loginForm').reset();
             
-            showNotification('Login successful!', 'success');
+            showNotification(`Welcome ${data.user.name}!`, 'success');
+            
+            // REDIRECT - THIS IS THE KEY PART
+            console.log('🔄 Redirecting based on role:', data.user.role);
+            
+            setTimeout(() => {
+                if (data.user.role === 'issuer') {
+                    console.log('➡️ Going to issuer page');
+                    window.location.href = 'issuer.html';
+                } else if (data.user.role === 'student') {
+                    console.log('➡️ Going to student dashboard');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    console.log('➡️ Going to verify page');
+                    window.location.href = 'verify.html';
+                }
+            }, 1000); // Small delay so user sees success message
+            
         } else {
+            console.error('❌ Login failed:', data.error);
             showNotification(data.error || 'Login failed', 'error');
         }
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
         showNotification('Failed to connect to server', 'error');
     }
 }
-
 async function handleRegister(e) {
     e.preventDefault();
-    
+
     const userData = {
         name: document.getElementById('regName').value,
         email: document.getElementById('regEmail').value,
@@ -175,7 +228,7 @@ async function handleRegister(e) {
         walletAddress: document.getElementById('regWallet').value,
         role: document.getElementById('regRole').value
     };
-    
+
     try {
         const response = await fetch(`${API_URL}/register`, {
             method: 'POST',
@@ -184,23 +237,18 @@ async function handleRegister(e) {
             },
             body: JSON.stringify(userData)
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok) {
-            // Save token and user data
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
             currentUser = data.user;
             token = data.token;
-            
-            // Close modal and update UI
+
             closeModal('registerModal');
             updateUIForLoggedInUser();
-            
-            // Clear form
             document.getElementById('registerForm').reset();
-            
             showNotification('Registration successful!', 'success');
         } else {
             showNotification(data.error || 'Registration failed', 'error');
@@ -216,13 +264,13 @@ function logout() {
     localStorage.removeItem('user');
     currentUser = null;
     token = null;
-    
+
     // Update UI
     updateUIForLoggedOutUser();
-    
+
     // Redirect to home
     window.location.href = 'index.html';
-    
+
     showNotification('Logged out successfully', 'success');
 }
 
@@ -235,18 +283,18 @@ function updateUIForLoggedInUser() {
                 <span class="user-email">${currentUser.email}</span>
                 <button id="logoutBtn" class="btn btn-outline">Logout</button>
             `;
-            
+
             // Re-attach logout event listener
             document.getElementById('logoutBtn').addEventListener('click', logout);
         }
     }
-    
+
     // Show user email on pages
     const userEmailSpan = document.getElementById('userEmail');
     if (userEmailSpan && currentUser) {
         userEmailSpan.textContent = currentUser.email;
     }
-    
+
     // Update wallet info on issuer page
     const walletSpan = document.getElementById('walletAddress');
     if (walletSpan && currentUser && currentUser.walletAddress) {
@@ -261,12 +309,12 @@ function updateUIForLoggedOutUser() {
             <button id="loginBtn" class="btn btn-outline">Login</button>
             <button id="registerBtn" class="btn btn-primary">Register</button>
         `;
-        
+
         // Re-attach event listeners
         document.getElementById('loginBtn').addEventListener('click', () => openModal('loginModal'));
         document.getElementById('registerBtn').addEventListener('click', () => openModal('registerModal'));
     }
-    
+
     // Clear user email
     const userEmailSpan = document.getElementById('userEmail');
     if (userEmailSpan) {
@@ -294,12 +342,12 @@ function closeModal(modalId) {
 
 async function handleIssueCertificate(e) {
     e.preventDefault();
-    
+
     if (!token || !currentUser) {
         showNotification('Please login first', 'error');
         return;
     }
-    
+
     const formData = new FormData();
     formData.append('studentName', document.getElementById('studentName').value);
     formData.append('studentEmail', document.getElementById('studentEmail').value);
@@ -307,16 +355,16 @@ async function handleIssueCertificate(e) {
     formData.append('grade', document.getElementById('grade').value);
     formData.append('issueDate', document.getElementById('issueDate').value);
     formData.append('certificateHash', document.getElementById('certificateHash').textContent);
-    
+
     const fileInput = document.getElementById('certificateDocument');
     if (fileInput.files[0]) {
         formData.append('document', fileInput.files[0]);
     }
-    
+
     try {
         document.getElementById('issueBtn').disabled = true;
         document.getElementById('issueBtn').textContent = 'Issuing...';
-        
+
         const response = await fetch(`${API_URL}/issue-certificate`, {
             method: 'POST',
             headers: {
@@ -324,9 +372,9 @@ async function handleIssueCertificate(e) {
             },
             body: formData
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok) {
             // Show success modal
             document.getElementById('successDetails').innerHTML = `
@@ -337,11 +385,11 @@ async function handleIssueCertificate(e) {
                 <code>${data.certificate.hash}</code>
             `;
             openModal('successModal');
-            
+
             // Reset form
             document.getElementById('issueCertificateForm').reset();
             document.getElementById('certificateHash').textContent = '-';
-            
+
             // Refresh recent certificates
             loadRecentCertificates();
         } else {
@@ -365,20 +413,20 @@ function generateCertificateHash() {
     const fileInput = document.getElementById('certificateDocument');
     if (fileInput.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             // FIXED: Better hash generation
             const content = new Uint8Array(e.target.result);
             let hash = 5381; // Better initial value
-            
+
             for (let i = 0; i < content.length; i++) {
                 hash = ((hash << 5) + hash) + content[i]; // hash * 33 + c
                 hash = hash & hash; // Convert to 32-bit integer
             }
-            
+
             // Convert to positive hex string
             const positiveHash = hash >>> 0; // Convert to unsigned
             const finalHash = '0x' + positiveHash.toString(16).padStart(64, '0');
-            
+
             console.log('Generated hash:', finalHash); // Debug output
             document.getElementById('certificateHash').textContent = finalHash;
         };
@@ -401,14 +449,14 @@ function generateRandomHash() {
 }
 async function handleVerify(e) {
     e.preventDefault();
-    
+
     const certificateHash = document.getElementById('certificateHash').value;
-    
+
     if (!certificateHash) {
         showNotification('Please enter a certificate hash', 'error');
         return;
     }
-    
+
     try {
         const response = await fetch(`${API_URL}/verify-certificate`, {
             method: 'POST',
@@ -417,16 +465,16 @@ async function handleVerify(e) {
             },
             body: JSON.stringify({ certificateHash })
         });
-        
+
         const data = await response.json();
-        
+
         const resultDiv = document.getElementById('verificationResult');
         const resultIcon = document.getElementById('resultIcon');
         const resultTitle = document.getElementById('resultTitle');
         const resultDetails = document.getElementById('resultDetails');
-        
+
         resultDiv.style.display = 'block';
-        
+
         if (data.isValid) {
             resultDiv.className = 'verification-result valid';
             resultIcon.textContent = '✅';
@@ -454,7 +502,7 @@ function extractHashFromFile() {
     const fileInput = document.getElementById('certificateFile');
     if (fileInput.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             // For demo, we'll simulate extracting hash
             // In production, you'd parse the PDF and extract embedded hash
             const fakeHash = '0x' + Math.random().toString(16).substring(2, 34);
@@ -479,7 +527,7 @@ async function loadDashboardStats() {
 async function loadRecentCertificates() {
     const recentList = document.getElementById('recentList');
     if (!recentList) return;
-    
+
     // For demo, show fake recent certificates
     recentList.innerHTML = `
         <div class="certificate-item">
@@ -509,7 +557,7 @@ async function loadRecentCertificates() {
 async function loadRecentVerifications() {
     const recentList = document.getElementById('recentVerificationsList');
     if (!recentList) return;
-    
+
     // For demo, show fake recent verifications
     recentList.innerHTML = `
         <div class="certificate-item">
@@ -555,9 +603,9 @@ function showNotification(message, type = 'info') {
         z-index: 3000;
         animation: slideIn 0.3s ease;
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Remove after 3 seconds
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
