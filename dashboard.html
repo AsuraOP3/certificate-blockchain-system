@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - BlockCerts</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Dashboard Specific Styles */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .welcome-card h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0 1rem;
+        }
+
+        .certificates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .certificate-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #2ecc71;
+            transition: all 0.3s;
+        }
+
+        .certificate-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .certificate-card.revoked {
+            border-left-color: #e74c3c;
+            opacity: 0.8;
+        }
+
+        .certificate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .certificate-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .certificate-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .badge-valid {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .badge-revoked {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .certificate-details {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            width: 100px;
+            color: #34495e;
+        }
+
+        .detail-value {
+            flex: 1;
+            color: #2c3e50;
+        }
+
+        .certificate-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            background: #ecf0f1;
+            padding: 0.5rem;
+            border-radius: 5px;
+            word-break: break-all;
+            margin-top: 0.5rem;
+        }
+
+        .certificate-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-verify {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-verify:hover {
+            background: #2980b9;
+        }
+
+        .btn-share {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-share:hover {
+            background: #27ae60;
+        }
+
+        .btn-download {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-download:hover {
+            background: #7f8c8d;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+        }
+
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal-content {
+            max-width: 500px;
+        }
+
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #000 25%, #fff 25%, #fff 50%, #000 50%, #000 75%, #fff 75%, #fff 100%);
+            background-size: 20px 20px;
+            border: 2px solid #3498db;
+        }
+
+        .share-link-container {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .share-link-container input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        @media (max-width: 768px) {
+            .certificates-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .certificate-actions {
+                flex-direction: column;
+            }
+        }
+
+        .user-email {
+            margin-right: 1rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🔗</span>
+                <span class="logo-text">BlockCerts</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html" class="active">Dashboard</a></li>
+                <li><a href="verify.html">Verify</a></li>
+                <li id="issuerLink" style="display: none;"><a href="issuer.html">Issue Certificate</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <span id="userEmail" class="user-email"></span>
+                <button id="logoutBtn" class="btn btn-outline">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="welcome-card">
+            <h1>Welcome, <span id="userName">Student</span>! 👋</h1>
+            <p>Your blockchain-verified certificates are securely stored and ready to share with employers.</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📜</div>
+                <div class="stat-number" id="totalCertificates">0</div>
+                <div class="stat-label">Total Certificates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-number" id="verifiedCount">0</div>
+                <div class="stat-label">Verified on Blockchain</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔄</div>
+                <div class="stat-number" id="sharedCount">0</div>
+                <div class="stat-label">Times Shared</div>
+            </div>
+        </div>
+
+        <div class="section-title">
+            <h2>📜 My Certificates</h2>
+            <button class="btn btn-outline" onclick="refreshCertificates()">
+                🔄 Refresh
+            </button>
+        </div>
+
+        <div id="certificatesContainer" class="certificates-grid">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading your certificates from blockchain...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeShareModal()">&times;</span>
+            <h2>🔗 Share Certificate</h2>
+            
+            <div id="shareCertificateInfo" style="margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 5px;">
+                <!-- Certificate info will be inserted here -->
+            </div>
+
+            <div class="qr-container">
+              <div id="qrCode" style="display: flex; justify-content: center; align-items: center; min-height: 200px;">
+    <!-- QR code will appear here -->
+</div>
+            </div>
+
+            <div class="share-link-container">
+                <input type="text" id="shareLink" readonly value="">
+                <button onclick="copyShareLink()" class="btn btn-primary">Copy</button>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button onclick="shareByEmail()" class="btn btn-outline" style="flex: 1;">📧 Email</button>
+                <button onclick="shareByWhatsApp()" class="btn btn-outline" style="flex: 1;">📱 WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 BlockChain Certificate Verification System | Student Dashboard</p>
+    </footer>
+
+    <script>
+        // API Configuration
+        const API_URL = 'http://localhost:5000/api';
+        
+        // Global variables
+        let currentUser = null;
+        let token = localStorage.getItem('token');
+        
+        console.log('📊 Dashboard loading...');
+        console.log('Token exists:', !!token);
+        
+        // Check if user is logged in
+        if (!token) {
+            console.log('❌ No token found, redirecting to login');
+            window.location.href = 'index.html';
+        }
+        
+        // Parse user data
+        const userData = localStorage.getItem('user');
+        if (!userData) {
+            console.log('❌ No user data found, redirecting to login');
+            window.location.href = 'index.html';
+        }
+        
+        try {
+            currentUser = JSON.parse(userData);
+            console.log('✅ User loaded:', currentUser);
+            
+            // Update UI elements - WITH ERROR CHECKING
+            const userNameSpan = document.getElementById('userName');
+            const userEmailSpan = document.getElementById('userEmail');
+            const issuerLink = document.getElementById('issuerLink');
+            
+            if (userNameSpan) {
+                userNameSpan.textContent = currentUser.name || 'Student';
+                console.log('Updated userName to:', currentUser.name);
+            } else {
+                console.error('userName element not found!');
+            }
+            
+            if (userEmailSpan) {
+                userEmailSpan.textContent = currentUser.email || '';
+                console.log('Updated userEmail to:', currentUser.email);
+            } else {
+                console.error('userEmail element not found!');
+            }
+            
+            // Show issuer link if user is issuer
+            if (issuerLink && currentUser.role === 'issuer') {
+                issuerLink.style.display = 'block';
+                console.log('Showing issuer link');
+            }
+            
+            // Load certificates
+            loadStudentCertificates();
+            
+        } catch (error) {
+            console.error('Error parsing user data:', error);
+            window.location.href = 'index.html';
+        }
+
+        // Load certificates function
+        async function loadStudentCertificates() {
+            const container = document.getElementById('certificatesContainer');
+            if (!container) {
+                console.error('certificatesContainer element not found!');
+                return;
+            }
+            
+            try {
+                // Show loading state
+                container.innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading your certificates...</p>
+                    </div>
+                `;
+                
+                // Try to fetch from API
+                const token = localStorage.getItem('token');
+                
+                if (token) {
+                    try {
+                        const response = await fetch(`${API_URL}/my-certificates`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const certificates = await response.json();
+                            displayCertificates(certificates);
+                            return;
+                        }
+                    } catch (apiError) {
+                        console.log('API fetch failed, using demo data:', apiError);
+                    }
+                }
+                
+                // If API fails or no certificates, show demo data
+                console.log('Using demo certificate data');
+                const demoCerts = getDemoCertificates();
+                displayCertificates(demoCerts);
+                
+            } catch (error) {
+                console.error('Error loading certificates:', error);
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3>Error Loading Certificates</h3>
+                            <p>There was a problem loading your certificates.</p>
+                            <button class="btn btn-primary" onclick="loadStudentCertificates()">
+                                🔄 Try Again
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Demo certificates for display
+        function getDemoCertificates() {
+            return [
+                {
+                    _id: '1',
+                    certificateId: 'CERT-2024-001',
+                    studentName: currentUser?.name || 'Student',
+                    courseName: 'Bachelor of Computer Science',
+                    issueDate: '2024-01-15',
+                    grade: 'First Class Honours',
+                    certificateHash: '0x7b8d4e3f2a1c9b5a7d3e6f8c2a4b6d8e0f1a3c5e7',
+                    issuerWallet: '0xUniversity',
+                    isRevoked: false
+                },
+                {
+                    _id: '2',
+                    certificateId: 'CERT-2024-002',
+                    studentName: currentUser?.name || 'Student',
+                    courseName: 'Blockchain Professional Certificate',
+                    issueDate: '2024-02-20',
+                    grade: 'Distinction',
+                    certificateHash: '0xabcd1234efgh5678ijkl9012mnop3456qrst7890',
+                    issuerWallet: '0xBlockchainAcademy',
+                    isRevoked: false
+                },
+                {
+                    _id: '3',
+                    certificateId: 'CERT-2024-003',
+                    studentName: currentUser?.name || 'Student',
+                    courseName: 'Web Development Bootcamp',
+                    issueDate: '2024-03-10',
+                    grade: 'A+',
+                    certificateHash: '0x9876fedcba543210zyxw9876fedcba543210zyxw',
+                    issuerWallet: '0xCodingSchool',
+                    isRevoked: false
+                }
+            ];
+        }
+
+        // Display certificates in grid
+        function displayCertificates(certificates) {
+            const container = document.getElementById('certificatesContainer');
+            if (!container) {
+                console.error('certificatesContainer element not found!');
+                return;
+            }
+            
+            if (!certificates || certificates.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <h3>No Certificates Yet</h3>
+                        <p>When your institution issues certificates, they'll appear here automatically.</p>
+                        <button class="btn btn-primary" onclick="refreshCertificates()">
+                            🔄 Check Again
+                        </button>
+                    </div>
+                `;
+                
+                // Update stats
+                updateStats(0, 0, 0);
+                return;
+            }
+
+            // Update stats
+            updateStats(certificates.length, certificates.length, 0);
+
+            // Generate certificate cards
+            container.innerHTML = certificates.map(cert => `
+                <div class="certificate-card ${cert.isRevoked ? 'revoked' : ''}">
+                    <div class="certificate-header">
+                        <span class="certificate-title">${escapeHtml(cert.courseName || 'Certificate')}</span>
+                        <span class="certificate-badge ${cert.isRevoked ? 'badge-revoked' : 'badge-valid'}">
+                            ${cert.isRevoked ? '❌ Revoked' : '✅ Verified'}
+                        </span>
+                    </div>
+                    
+                    <div class="certificate-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Student:</span>
+                            <span class="detail-value">${escapeHtml(cert.studentName || 'N/A')}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Date:</span>
+                            <span class="detail-value">${new Date(cert.issueDate).toLocaleDateString()}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Grade:</span>
+                            <span class="detail-value">${escapeHtml(cert.grade || 'N/A')}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">ID:</span>
+                            <span class="detail-value">${escapeHtml(cert.certificateId || 'N/A')}</span>
+                        </div>
+                        <div class="certificate-hash">
+                            <strong>Hash:</strong> ${cert.certificateHash ? cert.certificateHash.substring(0, 30) + '...' : 'N/A'}
+                        </div>
+                    </div>
+
+                    <div class="certificate-actions">
+                        <button class="action-btn btn-verify" onclick="verifyCertificate('${cert.certificateHash}')">
+                            🔍 Verify
+                        </button>
+                        <button class="action-btn btn-share" onclick="shareCertificate('${cert.certificateHash}', '${escapeHtml(cert.courseName)}')">
+                            📤 Share
+                        </button>
+                        <button class="action-btn btn-download" onclick="downloadCertificate('${cert._id}')">
+                            📥 PDF
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Update stats safely
+        function updateStats(total, verified, shared) {
+            const totalEl = document.getElementById('totalCertificates');
+            const verifiedEl = document.getElementById('verifiedCount');
+            const sharedEl = document.getElementById('sharedCount');
+            
+            if (totalEl) totalEl.textContent = total;
+            if (verifiedEl) verifiedEl.textContent = verified;
+            if (sharedEl) sharedEl.textContent = shared;
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Action functions
+        function verifyCertificate(hash) {
+            if (hash) {
+                window.location.href = `verify.html?hash=${encodeURIComponent(hash)}`;
+            } else {
+                showNotification('Certificate hash not available', 'error');
+            }
+        }
+
+        // WORKING QR CODE FUNCTION - Copy this entire function
+    function shareCertificate(hash, title) {
+    console.log('Share function called for:', title);
+    
+    const modal = document.getElementById('shareModal');
+    const shareLink = document.getElementById('shareLink');
+    const shareInfo = document.getElementById('shareCertificateInfo');
+    const qrContainer = document.getElementById('qrCode');
+    
+    if (!modal || !shareLink || !shareInfo || !qrContainer) {
+        console.error('Modal elements not found');
+        return;
+    }
+    
+    const baseUrl = window.location.origin;
+    const verificationLink = `${baseUrl}/verify.html?hash=${encodeURIComponent(hash)}`;
+    
+    console.log('Verification link:', verificationLink);
+    
+    shareLink.value = verificationLink;
+    shareInfo.innerHTML = `
+        <p><strong>Certificate:</strong> ${escapeHtml(title || 'Certificate')}</p>
+        <p><strong>Blockchain Hash:</strong> <code>${hash.substring(0, 30)}...</code></p>
+        <p><small>Scan the QR code or share this link with employers</small></p>
+    `;
+    
+    // Clear previous QR code
+    qrContainer.innerHTML = '';
+    
+    // Generate QR using free API (THIS WORKS!)
+    const qrImageUrl = `https://quickchart.io/qr?text=${encodeURIComponent(verificationLink)}&size=200&margin=2`;
+    
+    qrContainer.innerHTML = `
+        <img src="${qrImageUrl}" 
+             alt="QR Code" 
+             width="200" 
+             height="200"
+             style="border: 1px solid #ddd; border-radius: 10px; padding: 5px; background: white;">
+        <p style="margin-top: 10px; font-size: 12px; color: #666;">Scan with your phone camera</p>
+    `;
+    
+    modal.classList.add('show');
+    
+    console.log('QR code generated successfully');
+}
+
+        function downloadCertificate(id) {
+            showNotification('Download feature coming soon!', 'info');
+        }
+
+        function refreshCertificates() {
+            loadStudentCertificates();
+        }
+
+        // Share functions
+        function copyShareLink() {
+            const link = document.getElementById('shareLink');
+            if (link) {
+                link.select();
+                document.execCommand('copy');
+                showNotification('✅ Link copied to clipboard!', 'success');
+            }
+        }
+
+        function shareByEmail() {
+            const link = document.getElementById('shareLink');
+            if (link) {
+                const subject = encodeURIComponent('My Blockchain Verified Certificate');
+                const body = encodeURIComponent(`Here's my verified certificate: ${link.value}`);
+                window.open(`mailto:?subject=${subject}&body=${body}`);
+            }
+        }
+
+        function shareByWhatsApp() {
+            const link = document.getElementById('shareLink');
+            if (link) {
+                const text = encodeURIComponent(`Check out my verified certificate: ${link.value}`);
+                window.open(`https://wa.me/?text=${text}`);
+            }
+        }
+
+        function closeShareModal() {
+            const modal = document.getElementById('shareModal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        }
+
+        // Notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 2rem;
+                background: ${type === 'success' ? '#2ecc71' : type === 'error' ? '#e74c3c' : '#3498db'};
+                color: white;
+                border-radius: 5px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 3000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Logout
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'index.html';
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList && event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        };
+        // Add this function if it doesn't exist
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        console.log('✅ Dashboard initialization complete');
+    </script>
+    
+</body>
+</html>
